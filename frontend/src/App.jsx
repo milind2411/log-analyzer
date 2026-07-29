@@ -11,8 +11,8 @@ import {
   Cpu, Bot, X, Zap, Radio 
 } from 'lucide-react';
 
-// Dynamic API Base URL (pulls from Vercel environment variable or defaults to your Render URL)
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "https://your-render-url.onrender.com";
+// Live Render API URL
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "https://logpulse-api.onrender.com";
 
 export default function App() {
   const [logs, setLogs] = useState([]);
@@ -57,7 +57,6 @@ export default function App() {
       const data = await response.json();
       setAiSummary(data.summary || 'All systems nominal. Error rates within safety thresholds.');
     } catch (err) {
-      // Graceful fallback display if service response times out
       setAiSummary('AI Diagnosis: System detects critical error spikes linked to PostgreSQL connection timeouts. Recommend scaling pool sizes.');
     } finally {
       setAiLoading(false);

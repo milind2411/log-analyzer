@@ -11,6 +11,9 @@ import {
   Cpu, Bot, X, Zap, Radio 
 } from 'lucide-react';
 
+// Dynamic API Base URL (pulls from Vercel environment variable or defaults to your Render URL)
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "https://your-render-url.onrender.com";
+
 export default function App() {
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -29,13 +32,13 @@ export default function App() {
     await loadSlim(engine);
   }, []);
 
-  // Fetch telemetry logs from Spring Boot
+  // Fetch telemetry logs from Spring Boot backend on Render
   const fetchLogs = async () => {
     setLoading(true);
     try {
       const url = filter === 'ALL' 
-        ? 'http://localhost:8080/api/logs' 
-        : `http://localhost:8080/api/logs/level/${filter}`;
+        ? `${API_BASE_URL}/api/logs` 
+        : `${API_BASE_URL}/api/logs/level/${filter}`;
       const response = await fetch(url);
       const data = await response.json();
       setLogs(data);
@@ -46,15 +49,15 @@ export default function App() {
     }
   };
 
-  // Trigger AI Breakdown via Python Backend
+  // Trigger AI Breakdown via microservice / backend endpoint
   const fetchAiSummary = async () => {
     setAiLoading(true);
     try {
-      const response = await fetch('http://localhost:5000/api/ai-summary'); // Pointing to Python AI microservice
+      const response = await fetch(`${API_BASE_URL}/api/ai-summary`);
       const data = await response.json();
       setAiSummary(data.summary || 'All systems nominal. Error rates within safety thresholds.');
     } catch (err) {
-      // Graceful fallback display if Python service is offline
+      // Graceful fallback display if service response times out
       setAiSummary('AI Diagnosis: System detects critical error spikes linked to PostgreSQL connection timeouts. Recommend scaling pool sizes.');
     } finally {
       setAiLoading(false);

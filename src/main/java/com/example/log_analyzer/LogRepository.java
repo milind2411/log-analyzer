@@ -7,6 +7,7 @@ import java.util.List;
 @Repository
 public interface LogRepository extends JpaRepository<LogMessage, Long> {
 
-    // Custom JPA query method to find logs by severity level
+    // Add this line so Spring Data JPA generates the query automatically
     List<LogMessage> findByLevelIgnoreCase(String level);
+
 }

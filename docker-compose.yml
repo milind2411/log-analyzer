@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  postgres-db:
+    image: postgres:16-alpine
+    container_name: log-analyzer-db
+    restart: always
+    environment:
+      POSTGRES_DB: logdb
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: "1234"
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  log-analyzer-backend:
+    build: .
+    container_name: log-analyzer-app
+    restart: always
+    ports:
+      - "8080:8080"
+    environment:
+      DB_URL: jdbc:postgresql://postgres-db:5432/logdb
+      DB_USERNAME: postgres
+      DB_PASSWORD: "1234"
+      GROQ_API_KEY: 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
+    depends_on:
+      postgres-db:
+        condition: service_healthy
+
+volumes:
+  postgres_data:

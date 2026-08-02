@@ -1,12 +1,24 @@
-# Step 1: Build the Maven application
-FROM maven:3.9.6-eclipse-temurin-17 AS build
+# Stage 1: Build the Spring Boot application using Maven
+FROM maven:3.9.6-eclipse-temurin-17 AS builder
 WORKDIR /app
-COPY . .
-RUN mvn clean package -DskipTests
 
-# Step 2: Package and run the JAR
-FROM eclipse-temurin:17-jdk-alpine
+# Copy pom.xml and download dependencies
+COPY pom.xml .
+RUN mvn dependency:go-offline -B
+
+# Copy source code and build the executable JAR
+COPY src ./src
+RUN mvn package -DskipTests
+
+# Stage 2: Create lightweight runtime image
+FROM eclipse-temurin:17-jre-alpine
 WORKDIR /app
-COPY --from=build /app/target/*.jar app.jar
+
+# Copy built JAR from builder stage
+COPY --from=builder /app/target/*.jar app.jar
+
+# Expose server port
 EXPOSE 8080
+
+# Run Spring Boot app
 ENTRYPOINT ["java", "-jar", "app.jar"]

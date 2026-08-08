@@ -1,343 +1,126 @@
-<div align="center">
+# 📡 LogPulse — Telemetry & AI Log Analyzer
 
-# 📊 LogPulse — Telemetry & AI Log Analyzer
-
-### Real-time log intelligence for cloud-native applications, powered by LLM diagnostics.
-Spring AOP Exception Interception · PostgreSQL · Groq LLM Diagnostics
-
-[![Frontend Deploy](https://img.shields.io/badge/Frontend-Vercel-black?style=for-the-badge&logo=vercel)](https://log-analyzer-brown.vercel.app/)
-[![Backend Deploy](https://img.shields.io/badge/Backend-Render-46E3B7?style=for-the-badge&logo=render)](https://logpulse-api.onrender.com/api/logs)
-[![Java](https://img.shields.io/badge/Java-17-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white)](https://openjdk.org/projects/jdk/17/)
-[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.x-6DB33F?style=for-the-badge&logo=springboot&logoColor=white)](https://spring.io/projects/spring-boot)
-[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Render-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
-[![Docker](https://img.shields.io/badge/Docker-Multi--Stage-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com/)
-
-**[🚀 Live Demo](https://log-analyzer-brown.vercel.app/)** &nbsp;•&nbsp; **[🔌 API Endpoint](https://logpulse-api.onrender.com/api/logs)** &nbsp;•&nbsp; **[📖 API Reference](#-api-reference)** &nbsp;•&nbsp; **[⚙️ Local Setup](#️-local-setup--installation-guide)**
-
-</div>
+> **LogPulse** is a cloud-native, full-stack observability and telemetry platform built with **Java 17, Spring Boot 3, PostgreSQL 16, React/Next.js, and Groq LLM**. It streams live system events, intercepts unhandled application exceptions in real time via **Spring AOP**, and provides one-click AI diagnostics to deliver immediate root-cause analyses and actionable remediation steps.
 
 ---
 
-## 📌 Overview
+## 📸 System Overview & Live Dashboard
 
-**LogPulse** is a full-stack observability tool that ingests structured application logs in real time and uses **AI (Groq API)** to automatically diagnose root causes — turning raw stack traces and system warnings into human-readable explanations.
+![LogPulse Dashboard Preview](./assets/dashboard-preview.jpg)
 
-### The Problem
+* **Real-time Active Warning Banners:** Prominently displays live system alerts (e.g., `ACTIVE WARNING: Slow query detected: runtime > 450ms`).
+* **Ingestion Metrics:** Live tracking of persisted log counts (**8,200+ logs ingested**) into the PostgreSQL 16 engine.
+* **AOP Interception Status:** Indicates active global exception guarding (`Active & Guarding`).
+* **Groq AI Diagnosis Panel:** Displays health summaries, root cause diagnoses, and recommended immediate actions based on live stack traces.
 
-Cloud developers routinely lose hours sifting through noisy, unstructured logs to answer a simple question: *"Why did this actually fail?"* Traditional log viewers show you the **what**, but rarely the **why**.
+### 🔗 Project Resources
+* 📱 **Live Application Dashboard:** [log-analyzer-brown.vercel.app](https://log-analyzer-brown.vercel.app/)
+* ⚡ **Live API Endpoint:** [logpulse-api.onrender.com/api/logs](https://logpulse-api.onrender.com/api/logs)
+* 💻 **GitHub Repository:** [github.com/milind2411/log-analyzer](https://github.com/milind2411/log-analyzer)
+* 🏷️ **Current Version:** `v1.0.0`
 
-### The Solution
+## 🎯 The Problem & Vision
 
-LogPulse bridges that gap by:
-- Streaming live, structured logs (`INFO` / `WARN` / `ERROR`) from a simulated production-like backend.
-- Feeding error and warning events into an **LLM-powered diagnostic engine** that identifies root causes — connection pool exhaustion, memory pressure, network timeouts, and more.
-- Presenting the result in a clean, real-time dashboard — cutting manual triage time from minutes to seconds.
+Debugging microservices in production often involves sifting through thousands of unstructured log lines across cloud environments. Identifying critical failures—such as database pool exhaustion, slow SQL queries, or third-party rate limits—takes valuable incident response time.
 
----
-
-## 🏗️ Architecture & Data Flow
-
-```mermaid
-flowchart LR
-    subgraph Client["🖥️ Client Layer"]
-        A["Next.js / React App<br/>(Vercel)"]
-    end
-
-    subgraph Server["⚙️ Application Layer — Render"]
-        B["Spring Boot REST API"]
-        C["AOP Logging Interceptor"]
-        D["Background Log<br/>Simulation Service"]
-        E["HikariCP<br/>Connection Pool"]
-    end
-
-    subgraph Data["💾 Data Layer"]
-        F[("PostgreSQL<br/>(Render)")]
-    end
-
-    subgraph AI["🧠 AI Layer"]
-        G["Groq API<br/>(LLM Inference)"]
-    end
-
-    A -- "HTTPS / REST (JSON)" --> B
-    B -- "Spring Data JPA" --> E
-    E -- "Pooled Connections" --> F
-    D -- "Generates synthetic<br/>events" --> B
-    C -. "Intercepts calls,<br/>captures metrics" .-> B
-    B -- "Sends error/stack trace<br/>for diagnosis" --> G
-    G -- "Root cause + summary" --> B
-    B -- "Structured JSON response" --> A
-
-    style A fill:#0070f3,color:#fff
-    style B fill:#6DB33F,color:#fff
-    style F fill:#4169E1,color:#fff
-    style G fill:#F55036,color:#fff
-```
-
-**Flow summary:**
-1. The **Next.js frontend** (Vercel) polls/fetches the REST API for live log data.
-2. The **Spring Boot backend** (Render) serves logs via `GET /api/logs`, backed by **Spring Data JPA + HikariCP** for efficient PostgreSQL connection pooling.
-3. An **AOP-based interceptor** captures method-level execution metrics and system events automatically.
-4. A **background simulation service** continuously generates realistic log events (transactions, resource spikes, connection issues).
-5. When an `ERROR` or critical `WARN` is detected, the backend calls the **Groq API** to generate an AI-driven root cause analysis, which is returned alongside the raw log.
+**LogPulse** solves this problem by:
+1. Standardizing and streaming log ingestion across severity levels (`INFO`, `WARN`, `ERROR`).
+2. Automatically intercepting runtime exceptions without invasively polluting business logic.
+3. Leveraging high-performance LLM inference (**Groq API**) to translate complex backend stack traces into plain-English root causes and immediate action plans.
 
 ---
 
-## ✨ Key Features
+## 🛠️ Complete Tech Stack & Architecture
 
-| Feature | Description |
-|---|---|
-| 🔴 **Real-Time Log Stream** | Live, searchable, and severity-filterable (`ALL` / `INFO` / `WARN` / `ERROR`) feed of structured JSON logs, with timestamp, service, and message payload columns. |
-| 🧠 **Automated AI Analysis** | One-click **Run Diagnosis** triggers Groq to analyze recent stack traces and returns a structured **Health Summary → Root Cause Diagnosis → Recommended Immediate Action** breakdown. |
-| 🤖 **Automated Log Generation** | A background service continuously simulates realistic system + DB transactional events, plus a manual **Trigger Test Error** button for on-demand demos. |
-| 🛡️ **Resilient System Monitoring** | An always-on AOP interceptor status indicator surfaces performance warnings — CPU spikes, worker memory pressure, HikariCP pool timeouts — before they become outages. |
+### **Backend Framework & Core**
+* **Language:** Java 17 (LTS)
+* **Framework:** Spring Boot 3.x
+* **Persistence Layer:** Spring Data JPA / Hibernate
+* **Aspect-Oriented Logic:** Spring AOP (Exception Interception)
+* **Connection Management:** HikariCP Connection Pool
 
-### 📸 Live Demo Screenshot
+### **Database & Search**
+* **Engine:** PostgreSQL 16 (Hosted on Render)
+* **Optimization:** Custom composite indexing on `timestamp` and `severity` fields
 
-![LogPulse Dashboard](./screenshots/dashboard-overview.png)
+### **Frontend & UI**
+* **Framework:** React / Next.js
+* **Styling:** Tailwind CSS (Dark-themed dashboard layout)
+* **Hosting:** Vercel
 
-The dashboard is split into three zones:
+### **AI Diagnostics Engine**
+* **API:** Groq LLM Inference API (Llama 3 Model)
 
-- **Top stat bar** — total ingested telemetry count, active PostgreSQL persistence engine, and live AOP interceptor status.
-- **Live System Telemetry Stream** (left) — a searchable, filterable (`ALL` / `INFO` / `WARN` / `ERROR`) real-time feed of structured logs with timestamp, severity, service, and message payload columns, plus a **Trigger Test Error** button to simulate failures on demand.
-- **Groq AI Diagnosis** (right) — on-demand root cause analysis broken into **Health Summary**, **Root Cause Diagnosis**, and **Recommended Immediate Action**, generated by a single click of **Run Diagnosis**.
+### **DevOps & Infrastructure**
+* **Containerization:** Multi-stage Dockerfile (JRE Alpine runtime)
+* **Deployment:** Render Web Service
+* **Version Control:** Git / GitHub (`v1.0.0`)
+  
+  [ Simulated Operations / Background Events ]
+                       │
+                       ▼
+        [ Spring AOP Exception Catch ]
+                       │
+                       ▼
+      [ Spring Data JPA / HikariCP Pool ]
+                       │
+                       ▼
+        [ PostgreSQL 16 DB Instance ]
+                       │
+                       ▼
+       [ REST API / Vercel React UI ]
+                       │
+                       ▼
+     [ Groq LLM Real-Time Error Analysis ]
 
-> _Add more screenshots/GIFs below (error detail view, mobile view, etc.) as your UI evolves._
-
----
-
-## 🧰 Tech Stack
-
-<table>
-<tr>
-<td valign="top" width="25%">
-
-**🎨 Frontend**
-- React / Next.js
-- Deployed on Vercel
-- REST-driven UI
-
-</td>
-<td valign="top" width="25%">
-
-**⚙️ Backend**
-- Java 17
-- Spring Boot
-- Spring Data JPA
-- HikariCP
-- Spring AOP
-
-</td>
-<td valign="top" width="25%">
-
-**🧠 AI Engine**
-- Groq API
-- LLM-based log
-  diagnosis & summaries
-
-</td>
-<td valign="top" width="25%">
-
-**💾 Database**
-- PostgreSQL
-- Hosted on Render
-
-</td>
-</tr>
-<tr>
-<td colspan="4" valign="top">
-
-**🚢 DevOps & Infrastructure**
-- Docker (Multi-stage builds)
-- GitHub Actions (CI)
-- Render Web Service (Backend)
-- Vercel (Frontend)
-
-</td>
-</tr>
-</table>
+  1. **Telemetry Ingestion:** Background services emit application events (`INFO`, `WARN`, `ERROR`).
+2. **Aspect-Oriented Exception Interception:** Custom `@Aspect` handlers intercept unhandled runtime exceptions globally, format the message payload and stack trace, and prepare telemetry for persistence.
+3. **Database Persistence:** Events write to PostgreSQL 16 via Spring Data JPA utilizing HikariCP connection pooling.
+4. **Live Visualization:** A responsive React frontend polls REST API endpoints to display log feeds, severity badges, and persistence metrics.
+5. **LLM Diagnostic Engine:** One-click AI analysis sends active error payloads to the Groq API, producing an instant **Health Summary**, **Root Cause Diagnosis**, and **Recommended Action Plan**.
 
 ---
 
-## 📡 API Reference
+## 💥 Real-World Engineering & Bottlenecks Solved
 
-### `GET /api/logs`
+Building for `localhost` differs heavily from deploying to cloud infrastructure. During cloud deployment on Render, the system encountered real production bottlenecks under load:
 
-Fetches the most recent structured log entries, including AI-generated diagnostics where applicable.
+### 1. HikariCP Connection Pool Exhaustion
+* **Issue:** Concurrent background writes caused `CannotCreateTransactionException` and `Connection refused on port 5432` errors.
+* **Fix:** Reconfigured HikariCP parameters (`maximum-pool-size=10`, `connection-timeout=20000`, `idle-timeout=300000`) to ensure connection reuse and prevent starvation.
 
-**Base URL:** `https://logpulse-api.onrender.com`
+### 2. Database Query Bottlenecks
+* **Issue:** Log read queries on large telemetry volumes caused execution delays (`>450ms`).
+* **Fix:** Created composite JPA indexes across high-frequency lookup columns (`timestamp`, `severity`), cutting query times significantly.
 
-| Method | Endpoint | Description | Auth Required |
-|---|---|---|---|
-| `GET` | `/api/logs` | Returns a list of recent structured log entries | No |
-
-#### Sample Response
-
-```json
-[
-  {
-    "id": 1042,
-    "timestamp": "2026-08-08T09:14:22.531Z",
-    "level": "ERROR",
-    "source": "PaymentService",
-    "message": "Connection to database timed out after 30000ms",
-    "stackTrace": "org.springframework.dao.DataAccessResourceFailureException: ...",
-    "aiDiagnosis": {
-      "rootCause": "HikariCP connection pool exhaustion due to sustained high transaction volume.",
-      "recommendation": "Increase maximumPoolSize or investigate long-running queries holding connections.",
-      "category": "DATABASE_CONNECTIVITY"
-    }
-  },
-  {
-    "id": 1041,
-    "timestamp": "2026-08-08T09:13:58.204Z",
-    "level": "WARN",
-    "source": "SystemMonitor",
-    "message": "CPU utilization exceeded 82% on worker-node-2",
-    "stackTrace": null,
-    "aiDiagnosis": null
-  },
-  {
-    "id": 1040,
-    "timestamp": "2026-08-08T09:13:40.912Z",
-    "level": "INFO",
-    "source": "OrderService",
-    "message": "Order #58213 processed successfully",
-    "stackTrace": null,
-    "aiDiagnosis": null
-  }
-]
-```
-
-#### Response Fields
-
-| Field | Type | Description |
-|---|---|---|
-| `id` | `number` | Unique log entry identifier |
-| `timestamp` | `string (ISO 8601)` | Time the event occurred |
-| `level` | `string` | `INFO`, `WARN`, or `ERROR` |
-| `source` | `string` | Originating service/component |
-| `message` | `string` | Human-readable log message |
-| `stackTrace` | `string \| null` | Raw stack trace, if applicable |
-| `aiDiagnosis` | `object \| null` | AI-generated root cause analysis (populated for critical events) |
+### 3. Third-Party Rate Limit Handlers
+* **Issue:** Rapid AI diagnostic triggers caused HTTP `429 Too Many Requests` responses from external APIs.
+* **Fix:** Implemented graceful error handling and request throttling logic on the backend.
 
 ---
 
-## ⚙️ Local Setup & Installation Guide
+## 💡 Key Use Cases & Applications
 
-### Prerequisites
-
-- **Java 17+** and **Maven**
-- **Node.js 18+** and **npm/yarn**
-- **PostgreSQL** (local instance or Docker container)
-- A **Groq API key** ([console.groq.com](https://console.groq.com))
-
-### 1️⃣ Clone the Repository
-
-```bash
-git clone https://github.com/<your-username>/logpulse.git
-cd logpulse
-```
-
-### 2️⃣ Backend Setup (Spring Boot)
-
-```bash
-cd backend
-
-# Configure environment variables
-export DB_URL=jdbc:postgresql://localhost:5432/logpulse
-export DB_USERNAME=postgres
-export DB_PASSWORD=your_password
-export GROQ_API_KEY=your_groq_api_key
-
-# Run the application
-./mvnw spring-boot:run
-```
-
-The API will be available at `http://localhost:8080/api/logs`.
-
-**`application.yml` reference:**
-
-```yaml
-spring:
-  datasource:
-    url: ${DB_URL}
-    username: ${DB_USERNAME}
-    password: ${DB_PASSWORD}
-    hikari:
-      maximum-pool-size: 10
-      connection-timeout: 30000
-  jpa:
-    hibernate:
-      ddl-auto: update
-
-groq:
-  api-key: ${GROQ_API_KEY}
-  model: llama-3.3-70b-versatile
-```
-
-### 3️⃣ Frontend Setup (Next.js)
-
-```bash
-cd frontend
-
-# Install dependencies
-npm install
-
-# Configure the API base URL
-echo "NEXT_PUBLIC_API_URL=http://localhost:8080/api/logs" > .env.local
-
-# Run the dev server
-npm run dev
-```
-
-Visit `http://localhost:3000` to view the app.
-
-### 4️⃣ (Optional) Run via Docker
-
-```bash
-docker build -t logpulse-backend ./backend
-docker run -p 8080:8080 --env-file .env logpulse-backend
-```
+* **Production Incident Response:** Converts unhandled exceptions into instant diagnosis reports for faster MTTR (Mean Time to Resolution).
+* **Microservice Observability:** Provides centralized log viewing and automated error trapping for Java applications.
+* **Developer Staging & Testing:** Offers instant feedback on simulated runtime faults during integration testing.
 
 ---
 
-## 🚀 Production Deployment & Engineering Challenges Solved
+## 🔮 Planned Future Enhancements
 
-| Challenge | Solution |
-|---|---|
-| **HikariCP Connection Exhaustion** | Tuned `maximumPoolSize`, `connectionTimeout`, and `idleTimeout` to match Render's free-tier PostgreSQL connection limits, preventing pool starvation under simulated load. |
-| **Multi-Stage Docker Builds** | Used a multi-stage `Dockerfile` (Maven build stage → slim JRE runtime stage) to shrink the final image size and speed up Render deployments. |
-| **CORS Between Vercel & Render** | Configured explicit `CorsConfigurationSource` in Spring Security to whitelist the Vercel frontend origin, avoiding wildcard `*` origins in production. |
-| **Render Cold Starts** | Implemented a lightweight scheduled self-ping (via GitHub Actions cron) to reduce free-tier backend cold-start latency for a smoother demo experience. |
-| **AI Latency Management** | Groq API calls are scoped only to `ERROR`/critical `WARN` events (not every log line) to keep response times low and avoid unnecessary token usage. |
-
-### Sample Multi-Stage `Dockerfile`
-
-```dockerfile
-# ---- Build Stage ----
-FROM maven:3.9-eclipse-temurin-17 AS build
-WORKDIR /app
-COPY pom.xml .
-RUN mvn dependency:go-offline
-COPY src ./src
-RUN mvn clean package -DskipTests
-
-# ---- Runtime Stage ----
-FROM eclipse-temurin:17-jre-alpine
-WORKDIR /app
-COPY --from=build /app/target/*.jar app.jar
-EXPOSE 8080
-ENTRYPOINT ["java", "-jar", "app.jar"]
-```
+* [ ] **Automated Alerting:** Slack, Discord, and Webhook integrations for high-severity `ERROR` spikes.
+* [ ] **Distributed Search:** Integration with Elasticsearch / OpenSearch for full-text regex querying.
+* [ ] **Metrics & Telemetry Visuals:** Graphical time-series charts tracking memory usage and error velocity over time.
+* [ ] **Authentication & Security:** OAuth2 / JWT login for multi-tenant developer access control.
 
 ---
 
-<div align="center">
+## 📄 License & Maintainer
 
-### 🔗 Quick Links
+Developed and maintained by **[Milind](https://github.com/milind2411)**.  
+Distributed under the MIT License. Contributions and feedback are welcome!
 
-**[🌐 Live App](https://log-analyzer-brown.vercel.app/)** &nbsp;|&nbsp; **[⚡ API](https://logpulse-api.onrender.com/api/logs)** &nbsp;|&nbsp; **[🐛 Report an Issue](../../issues)**
+---
 
-Built with ☕ Java, ⚛️ React, and 🧠 AI.
-
-</div>
+## 🏗️ How It Works (System Workflow)
